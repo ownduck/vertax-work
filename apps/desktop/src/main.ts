@@ -80,12 +80,24 @@ function developmentHostInspectPort(enabled: boolean): number | undefined {
 }
 
 function createWindow(preload: string): BrowserWindow {
+  const iconPath = app.isPackaged
+    ? join(process.resourcesPath, 'icon.ico')
+    : join('build', 'icon.ico')
   const window = new BrowserWindow({
     width: 1280,
     height: 840,
     minWidth: 880,
     minHeight: 600,
     show: false,
+    paintWhenInitiallyHidden: true,
+    icon: iconPath,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#ffffff',
+      symbolColor: '#1f1f1f',
+      height: 36,
+    },
+    backgroundColor: '#ffffff',
     webPreferences: {
       preload,
       nodeIntegration: false,
@@ -339,11 +351,12 @@ async function main(): Promise<void> {
       { role: 'quit' },
     ],
   }]))
+  Menu.setApplicationMenu(null)
 
   const createMainWindow = (): BrowserWindow => {
     const window = createWindow(appPreload)
     mainWindow = window
-    window.once('ready-to-show', () => { if (!window.isDestroyed()) window.show() })
+    window.once('ready-to-show', () => { if (!window.isDestroyed()) window.maximize();window.show() })
     window.on('closed', () => { if (mainWindow === window) mainWindow = undefined })
     return window
   }
@@ -361,9 +374,14 @@ async function main(): Promise<void> {
 
   mainWindow = createMainWindow()
   await mainWindow.loadURL(`${SCHEME}://app/index.html`)
-  if (development !== undefined && process.env.DSH_DESKTOP_OPEN_DEVTOOLS !== '0') {
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
-  }
+  const window = mainWindow
+  window.webContents.on('before-input-event', (event, input) => {
+    if (development !== undefined){
+      if (input.type !== 'keyDown' || input.key !== 'F12') return
+      event.preventDefault()
+      window.webContents.toggleDevTools()
+    }
+  })
   publishUpdate(updateState)
   setTimeout(() => { void checkAndPrompt(false) }, 10_000)
 

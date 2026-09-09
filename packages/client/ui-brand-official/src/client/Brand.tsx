@@ -1,4 +1,3 @@
-import { BrandWordmark, FishLogo } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SidebarBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 
 /**
@@ -7,7 +6,13 @@ import type { SidebarBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-side
  * @returns the official whale mark.
  */
 export function OfficialBrandMark({ size }: SidebarBrandMarkOwnerProps) {
-  return <FishLogo size={size} />
+  return <img
+    src="/favicon.svg"
+    width={size}
+    height={size}
+    alt=""
+    style={{ display: 'block', borderRadius: '50%' }}
+  />
 }
 
 /**
@@ -15,5 +20,5 @@ export function OfficialBrandMark({ size }: SidebarBrandMarkOwnerProps) {
  * @returns the official name wordmark.
  */
 export function OfficialBrandName() {
-  return <BrandWordmark includeMark={false} />
+  return <span style={{ fontSize:18,fontWeight:600,lineHeight:24 }}>Vertax Work</span>
 }

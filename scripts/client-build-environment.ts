@@ -200,6 +200,9 @@ export function resolveClientBuildEnvironment(
       DSH_CLIENT_COMMIT_HASH: commitHash,
       DSH_CLIENT_VERSION: version,
       ...OFFICIAL_CLIENT_BUILD_ENVIRONMENT,
+      ...(environment.DSH_CLIENT_TITLE !== undefined
+        ? { DSH_CLIENT_TITLE: environment.DSH_CLIENT_TITLE }
+        : {}),
     }
   }
   throw new Error(`unknown client build profile ${JSON.stringify(profile)}; expected "official"`)

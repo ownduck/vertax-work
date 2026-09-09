@@ -32,14 +32,7 @@ export function createElectronBuilderConfig(
   const packagesWindows = targetPlatform === 'win32'
   const macOSSigning = packagesMacOS ? resolveMacOSSigningEnvironment(env) : undefined
   if (packagesMacOS) resolveMacOSNotarizationEnvironment(env)
-  const windowsSigner = packagesWindows
-    ? createWindowsTokenSigner({
-        certificateFile: env.DSH_DESKTOP_WINDOWS_CER_FILE,
-        signTool: env.DSH_DESKTOP_WINDOWS_SIGNTOOL,
-        tokenPin: env.DSH_DESKTOP_WINDOWS_TOKEN_PIN,
-        keyContainer: env.DSH_DESKTOP_WINDOWS_KEY_CONTAINER,
-      })
-    : undefined
+  const windowsSigner = undefined
   if (windowsSigner !== undefined) {
     installWindowsNsisBootstrapSigner({ sign: windowsSigner })
   }
@@ -47,8 +40,9 @@ export function createElectronBuilderConfig(
   const buildPaths = desktopTargetBuildPaths(update.target)
   return {
     appId,
-    productName: 'DeepSeek Harness',
-    artifactName: 'deepseek-harness-${version}-${os}-${arch}.${ext}',
+    productName: 'VertaxWork',
+    artifactName: 'vertax-work-${version}-${os}-${arch}.${ext}',
+    icon: 'build/icon.ico',
     directories: { output: buildPaths.artifacts },
     asar: true,
     files: [
@@ -60,6 +54,7 @@ export function createElectronBuilderConfig(
     extraResources: [
       { from: buildPaths.runtime, to: 'runtime' },
       { from: buildPaths.seed, to: 'seed' },
+      { from: 'build/icon.ico', to: 'icon.ico' },
     ],
     mac: {
       category: 'public.app-category.developer-tools',
@@ -86,7 +81,7 @@ export function createElectronBuilderConfig(
       )
     },
     win: {
-      forceCodeSigning: true,
+      forceCodeSigning: false,
       signtoolOptions: {
         sign: windowsSigner,
         signingHashAlgorithms: ['sha256'],

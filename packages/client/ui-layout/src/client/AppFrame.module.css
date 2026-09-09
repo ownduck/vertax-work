@@ -97,3 +97,13 @@
 .overlayLayer > * {
   pointer-events: auto;
 }
+
+.windowDragBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 36px;
+    right: 140px;
+    z-index: 1000;
+    -webkit-app-region: drag;
+}
