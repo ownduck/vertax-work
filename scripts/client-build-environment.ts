@@ -19,7 +19,7 @@ export const CLIENT_BUILD_PROFILE_SELECTOR = 'DSH_BUILD_CLIENT_PROFILE'
 /** Public client environment required by official DSH artifacts. */
 const OFFICIAL_CLIENT_BUILD_ENVIRONMENT = {
   DSH_CLIENT_BUILD_PROFILE: 'official',
-  DSH_CLIENT_TITLE: 'DeepSeek Harness',
+  DSH_CLIENT_TITLE: 'Vertax Work',
 } as const
 
 /** Public variable carrying the source commit embedded in client artifacts. */
@@ -200,9 +200,6 @@ export function resolveClientBuildEnvironment(
       DSH_CLIENT_COMMIT_HASH: commitHash,
       DSH_CLIENT_VERSION: version,
       ...OFFICIAL_CLIENT_BUILD_ENVIRONMENT,
-      ...(environment.DSH_CLIENT_TITLE !== undefined
-        ? { DSH_CLIENT_TITLE: environment.DSH_CLIENT_TITLE }
-        : {}),
     }
   }
   throw new Error(`unknown client build profile ${JSON.stringify(profile)}; expected "official"`)

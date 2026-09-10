@@ -1,4 +1,4 @@
 #!/bin/bash
 git pull
 pnpm install
-pnpm run build
+pnpm run build:official
