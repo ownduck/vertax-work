@@ -55,6 +55,7 @@ export function createElectronBuilderConfig(
       { from: buildPaths.runtime, to: 'runtime' },
       { from: buildPaths.seed, to: 'seed' },
       { from: 'build/icon.ico', to: 'icon.ico' },
+      { from: '../../skills', to: 'skills' },
     ],
     mac: {
       category: 'public.app-category.developer-tools',

@@ -144,6 +144,9 @@ async function serveShellAsset(request: Request): Promise<Response> {
 
 async function main(): Promise<void> {
   const resources = runtimeResources()
+  if (!process.env.DSH_BUNDLED_SKILL_DIR && app.isPackaged) {
+    process.env.DSH_BUNDLED_SKILL_DIR = join(process.resourcesPath, 'skills')
+  }
   const paths = resolveDesktopPaths()
   const development = developmentProject()
   const activeProject = development ?? paths.profile
