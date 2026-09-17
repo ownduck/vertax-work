@@ -520,6 +520,7 @@ async function main(): Promise<void> {
   if (mainWindow !== undefined && development !== undefined && process.env.DSH_DESKTOP_OPEN_DEVTOOLS !== '0') {
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
+  const window = mainWindow
   window.webContents.on('before-input-event', (event, input) => {
     if (development !== undefined){
       if (input.type !== 'keyDown' || input.key !== 'F12') return
