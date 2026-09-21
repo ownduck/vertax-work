@@ -65,6 +65,7 @@ export class DesktopUpdateDialog {
     this.cancel()
     const buttons = options.buttons ?? [this.locale.messages.updateAcknowledge]
     const cancelId = options.cancelId ?? buttons.length - 1
+    return Promise.resolve({ response: cancelId, checkboxChecked: false })
     if (this.disposed || options.signal?.aborted === true || parent.isDestroyed()) {
       return Promise.resolve({ response: cancelId, checkboxChecked: false })
     }

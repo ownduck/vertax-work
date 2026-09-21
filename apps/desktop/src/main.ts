@@ -109,12 +109,17 @@ function developmentHostInspectPort(enabled: boolean): number | undefined {
 }
 
 function createWindow(preload: string, show = false, primary = false): BrowserWindow {
+  const iconPath = app.isPackaged
+    ? join(process.resourcesPath, 'icon.png')
+    : join('build', 'icon.png')
   const window = new BrowserWindow({
     width: 1280,
     height: 840,
     minWidth: 880,
     minHeight: 600,
     show,
+    paintWhenInitiallyHidden: true,
+    icon: iconPath,
     ...(process.platform === 'win32' && primary ? {
       titleBarStyle: 'hidden' as const,
       titleBarOverlay: { height: WINDOWS_TITLEBAR_HEIGHT, color: nativeTheme.shouldUseDarkColors ? '#1b1b1c' : '#f9fafb',
@@ -183,6 +188,9 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
 }
 
 async function main(): Promise<void> {
+  if (!process.env.DSH_BUNDLED_SKILL_DIR && app.isPackaged) {
+    process.env.DSH_BUNDLED_SKILL_DIR = join(process.resourcesPath, 'skills')
+  }
   const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
   const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
   const resources = runtimeResources()
@@ -658,6 +666,7 @@ async function main(): Promise<void> {
   const createMainWindow = (): BrowserWindow => {
     const window = createWindow(appPreload, true, true)
     mainWindow = window
+    window.once('ready-to-show', () => { if (!window.isDestroyed()) window.maximize() })
     window.on('focus', automaticCheck)
     window.on('closed', () => { if (mainWindow === window) mainWindow = undefined })
     window.webContents.on('did-fail-load', (_event, code, description, url, isMainFrame) => {
@@ -672,6 +681,13 @@ async function main(): Promise<void> {
       navigation = undefined
       if (!quitting && !window.isDestroyed() && details.reason !== 'clean-exit') {
         reportFatal(new Error(`Desktop renderer exited: ${details.reason}`))
+      }
+    })
+    window.webContents.on('before-input-event', (event, input) => {
+      if (development !== undefined || development == undefined) {
+        if (input.type !== 'keyDown' || input.key !== 'F12') return
+        event.preventDefault()
+        window.webContents.toggleDevTools()
       }
     })
     return window
