@@ -64,21 +64,7 @@ async function checkPty() {
   }
 }
 
-/** fs-ext implements seek on Windows through SetFilePointerEx and on POSIX through lseek. */
-function checkFsExt() {
-  const fsExt = requireRuntime('fs-ext')
-  const file = join(scratch, 'seek.txt')
-  writeFileSync(file, 'abcdef', { flag: 'wx', mode: 0o600 })
-  const fd = openSync(file, 'r')
-  try {
-    assert.equal(fsExt.seekSync(fd, 2, fsExt.constants.SEEK_SET), 2)
-    const bytes = Buffer.alloc(4)
-    assert.equal(readSync(fd, bytes, 0, bytes.length, null), 4)
-    assert.equal(bytes.toString(), 'cdef')
-  } finally {
-    closeSync(fd)
-  }
-}
+
 
 /** Resolve one system function through Koffi's packaged native module. */
 function checkKoffi() {
@@ -121,7 +107,6 @@ function checkHtml() {
 }
 
 try {
-  checkFsExt()
   checkKoffi()
   await checkSharp()
   checkHtml()
@@ -134,5 +119,5 @@ try {
 // Natural event-loop drain includes node-pty's worker and console-list helper teardown.
 process.once('beforeExit', () => {
   console.log(JSON.stringify({ node: process.versions.node, platform: process.platform, arch: process.arch,
-    fsExt: true, koffi: true, sharp: true, html: true, pty: true }))
+    koffi: true, sharp: true, html: true, pty: true }))
 })

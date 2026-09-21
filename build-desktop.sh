@@ -3,5 +3,4 @@ sh build-clean.sh
 export DSH_DESKTOP_APP_ID='com.vertax.work'
 export DOWNLOAD_TEST_ORIGIN='https://example.com'
 export DSH_BUILD_CLIENT_PROFILE=official
-export DSH_DESKTOP_UNSIGNED=1
-pnpm run package:desktop:win:x64:dir
+pnpm run package:desktop:win:x64:unsigned
