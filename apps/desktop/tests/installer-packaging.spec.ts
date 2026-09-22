@@ -39,6 +39,14 @@ describe('installer preparation preserves application dependencies', () => {
       const aboutIcon = config.extraResources.find(resource => resource.to === 'icon.png')
       expect(aboutIcon).toBeDefined()
       expect(readFileSync(aboutIcon!.from)).toEqual(readFileSync(new URL('../resources/icon-windows.png', import.meta.url)))
+      if (platform === 'win32') {
+        expect(config.extraFiles).toEqual(expect.arrayContaining([
+          expect.objectContaining({ to: 'init-env.bat' }),
+          expect.objectContaining({ to: '.env' }),
+        ]))
+      } else {
+        expect(config.extraFiles).toBeUndefined()
+      }
       const packager = new Packager({ projectDir: tmpdir() })
       // A foreign source-build target avoids rebuilding modules; the real dependency ownership decision still runs.
       Object.defineProperties(packager, {

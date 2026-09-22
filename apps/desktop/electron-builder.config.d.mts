@@ -18,6 +18,11 @@ export interface DesktopElectronBuilderConfig {
     { readonly from: string, readonly to: 'runtime' },
     { readonly from: string, readonly to: 'icon.png' },
   ]
+  /** Windows only: files placed beside the packaged `.exe`. */
+  readonly extraFiles?: readonly [
+    { readonly from: string, readonly to: 'init-env.bat' },
+    { readonly from: string, readonly to: '.env' },
+  ]
   readonly mac: {
     readonly identity: string | undefined
     readonly forceCodeSigning: boolean

@@ -111,7 +111,7 @@ function developmentHostInspectPort(enabled: boolean): number | undefined {
 function createWindow(preload: string, show = false, primary = false): BrowserWindow {
   const iconPath = app.isPackaged
     ? join(process.resourcesPath, 'icon.png')
-    : join('build', 'icon.png')
+    : join('resources', 'icon-windows.png')
   const window = new BrowserWindow({
     width: 1280,
     height: 840,

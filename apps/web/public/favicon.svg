@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- 黑色圆角方形背景 -->
+  <rect x="0" y="0" width="256" height="256" rx="42" ry="42" fill="#000000"/>
+  <!-- VX 字母（矢量多边形，倾斜加粗风格） -->
+  <g fill="#FDD017">
+    <!-- V -->
+    <polygon points="30,54 52,54 90,138 128,54 150,54 100,154 78,154"/>
+    <!-- X -->
+    <polygon points="152,54 174,54 192,88 210,54 232,54 204,102 232,150 210,150 192,116 174,150 152,150 180,102"/>
+    <!-- WORK 文字 -->
+    <text x="128" y="208" text-anchor="middle"
+          font-family="Arial Black, Arial, sans-serif" font-weight="900"
+          font-size="46" letter-spacing="1" fill="#FDD017">WORK</text>
+  </g>
+</svg>

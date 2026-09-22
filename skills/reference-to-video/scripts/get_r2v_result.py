@@ -17,9 +17,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prompt-id", required=True, help="run_r2v.py 输出的 prompt_id")
     parser.add_argument("--output-dir", type=Path, default=Path("output"), help="下载目录（默认 ./output）")
-    parser.add_argument("--comfyui-endpoint", help="ComfyUI 地址；其次读取 COMFYUI_ENDPOINT")
+    parser.add_argument("--comfyui-endpoint", help="ComfyUI 地址；其次读取 VERTAX_COMFYUI_ENDPOINT")
     args = parser.parse_args()
-    endpoint = (args.comfyui_endpoint or os.getenv("COMFYUI_ENDPOINT") or "http://127.0.0.1:8188").rstrip("/")
+    endpoint = (args.comfyui_endpoint or os.getenv("VERTAX_COMFYUI_ENDPOINT") or "http://127.0.0.1:8188").rstrip("/")
 
     def get(path, **kwargs):
         response = requests.get(endpoint + path, timeout=120, **kwargs)

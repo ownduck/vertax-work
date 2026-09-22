@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFile } from 'node:child_process'
@@ -79,6 +80,7 @@ export function createElectronBuilderConfig(
     appId,
     extraMetadata: { dshDesktopAppId: appId, dshMandatoryUpdatePolicy: policy },
     productName: 'Vertax Work',
+    executableName: 'VertaxWork',
     artifactName: 'vertax-work-${version}-${os}-${arch}.${ext}',
     directories: { output: unsigned ? join(buildPaths.root, 'unsigned-artifacts') : buildPaths.artifacts },
     asar: true,
@@ -119,6 +121,21 @@ export function createElectronBuilderConfig(
       { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },
       { from: fileURLToPath(new URL('../../../skills', import.meta.url)), to: 'skills' },
     ],
+    // Windows install root (beside the .exe): init helper + dotenv for custom-env / DSH_HOME.
+    ...packagesWindows ? {
+      extraFiles: [
+        { from: fileURLToPath(new URL('../../../init-env.bat', import.meta.url)), to: 'init-env.bat' },
+        {
+          from: (() => {
+            const rootEnv = fileURLToPath(new URL('../../../.env', import.meta.url))
+            return existsSync(rootEnv)
+              ? rootEnv
+              : fileURLToPath(new URL('../resources/packaged.env', import.meta.url))
+          })(),
+          to: '.env',
+        },
+      ],
+    } : {},
     mac: {
       icon: fileURLToPath(new URL('../resources/icon-macos.png', import.meta.url)),
       category: 'public.app-category.developer-tools',
