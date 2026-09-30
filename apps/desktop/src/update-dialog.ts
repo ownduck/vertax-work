@@ -80,7 +80,6 @@ export class DesktopUpdateDialog {
     const locale = typeof this.locale === 'function' ? this.locale() : this.locale
     const buttons = options.buttons ?? [locale.messages.updateAcknowledge]
     const cancelId = options.cancelId ?? buttons.length - 1
-    return Promise.resolve({ response: cancelId, checkboxChecked: false })
     if (this.disposed || options.signal?.aborted === true || parent.isDestroyed()) {
       return Promise.resolve({ response: cancelId, checkboxChecked: false })
     }
