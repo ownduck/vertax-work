@@ -10,10 +10,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--comfyui-endpoint", help="ComfyUI 地址（优先于 VERTAX_COMFYUI_ENDPOINT，兜底 http://127.0.0.1:8188）")
     endpoint = (parser.parse_args().comfyui_endpoint or os.getenv("VERTAX_COMFYUI_ENDPOINT") or "http://127.0.0.1:8188").rstrip("/")
+    token = (os.getenv("VERTAX_COMFYUI_TOKEN") or "").strip()
+    headers = {"X-Token": token} if token else {}
 
-    # 去掉地址末尾斜杠，避免拼出 //system_stats；限制等待时间。
     try:
-        response = requests.get(f"{endpoint}/system_stats", timeout=10)
+        response = requests.get(f"{endpoint}/system_stats", headers=headers, timeout=10)
         response.raise_for_status()
         stats = response.json()
         if not isinstance(stats, dict) or not isinstance(stats.get("system"), dict):

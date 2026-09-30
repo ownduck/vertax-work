@@ -57,7 +57,9 @@ def main():
     workflow["16"]["inputs"]["save_output"] = True
 
     def post(path, **kwargs):
-        response = requests.post(endpoint + path, timeout=120, **kwargs)
+        token = (os.getenv("VERTAX_COMFYUI_TOKEN") or "").strip()
+        headers = {"X-Token": token} if token else {}
+        response = requests.post(endpoint + path, headers=headers, timeout=120, **kwargs)
         if not response.ok:
             raise RuntimeError(f"{path}: HTTP {response.status_code} {response.text}")
         return response.json()

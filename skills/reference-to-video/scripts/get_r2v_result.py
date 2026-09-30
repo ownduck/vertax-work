@@ -22,7 +22,9 @@ def main():
     endpoint = (args.comfyui_endpoint or os.getenv("VERTAX_COMFYUI_ENDPOINT") or "http://127.0.0.1:8188").rstrip("/")
 
     def get(path, **kwargs):
-        response = requests.get(endpoint + path, timeout=120, **kwargs)
+        token = (os.getenv("VERTAX_COMFYUI_TOKEN") or "").strip()
+        headers = {"X-Token": token} if token else {}
+        response = requests.get(endpoint + path, headers=headers, timeout=120, **kwargs)
         if not response.ok:
             raise RuntimeError(f"{path}: HTTP {response.status_code} {response.text}")
         return response

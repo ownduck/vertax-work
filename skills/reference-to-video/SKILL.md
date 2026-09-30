@@ -40,7 +40,7 @@ python -m pip install -r "<技能目录>/scripts/requirements.txt"
 
 ## 流程
 
-严格按「健康检查 → 提交 → 获取结果」。服务地址：`--comfyui-endpoint` → `VERTAX_COMFYUI_ENDPOINT` → `http://127.0.0.1:8188`。显式指定时三条命令用同一地址。
+严格按「健康检查 → 提交 → 获取结果」。服务地址：`--comfyui-endpoint` → `VERTAX_COMFYUI_ENDPOINT` → `http://127.0.0.1:8188`。网关鉴权 Header `X-Token` 读自 `VERTAX_COMFYUI_TOKEN`（未设则不发送）。显式指定服务时三条命令用同一地址。
 
 ### 1. 健康检查
 
