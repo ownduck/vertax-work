@@ -35,10 +35,11 @@ description: >-
 - 图序须连续：有 `--image2` 必须有 `--image1`；有 `--image3` 必须有 `--image1` 和 `--image2`。
 - 多张本地参考图文件名不能重复。
 - `--model`：默认 `qwen-image-3.0`（日常使用）；`qwen-image-3.0-pro` 用于更高质量要求、更复杂版面。
+- `--size`：`宽x高` 或 `宽*高`；默认竖屏 `1024x1680`。横屏等可显式传入，例如 `1680x1024`。
 - `--output-dir`：默认 `./output`；建议写成绝对路径，避免工作目录混乱。
 - `--endpoint` 或环境变量 `DASHSCOPE_HTTP_BASE_URL`：默认 `https://dashscope.aliyuncs.com/api/v1`；须与 API Key **同地域**。
 
-脚本固定：`n=1`、`watermark=false`，分辨率由模型自荐；开启 `prompt_extend`。
+脚本固定：`n=1`、`watermark=false`；开启 `prompt_extend`。
 
 ## 命令示例
 

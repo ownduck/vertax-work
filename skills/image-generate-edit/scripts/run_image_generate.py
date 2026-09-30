@@ -9,6 +9,25 @@ import requests
 
 TIMEOUT = 600  # DashScope 同步建议 ≥600s
 MIME = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp", "gif": "image/gif", "bmp": "image/bmp", "tif": "image/tiff", "tiff": "image/tiff"}
+# 默认竖屏：宽 1024，高 1680（略矮于 9:16 的 1820）
+DEFAULT_SIZE_WIDTH = 1024
+DEFAULT_SIZE_HEIGHT = 1680
+DEFAULT_SIZE = f"{DEFAULT_SIZE_WIDTH}*{DEFAULT_SIZE_HEIGHT}"
+
+
+def parse_size(value: str) -> str:
+    """接受 ``1024x1680`` / ``1024*1680``，规范为 API 用的 ``W*H``。"""
+    raw = value.strip().lower().replace("×", "x").replace("*", "x")
+    if "x" not in raw:
+        raise argparse.ArgumentTypeError(f"size 须为 宽x高，例如 {DEFAULT_SIZE_WIDTH}x{DEFAULT_SIZE_HEIGHT}")
+    left, right = raw.split("x", 1)
+    try:
+        width, height = int(left), int(right)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(f"size 宽高须为整数: {value}") from e
+    if width < 1 or height < 1:
+        raise argparse.ArgumentTypeError(f"size 宽高须为正整数: {value}")
+    return f"{width}*{height}"
 
 
 def main():
@@ -21,6 +40,12 @@ def main():
     p.add_argument("--negative-prompt")
     p.add_argument("--negative-prompt-file", type=Path)
     p.add_argument("--model", choices=("qwen-image-3.0-pro", "qwen-image-3.0"), default="qwen-image-3.0")
+    p.add_argument(
+        "--size",
+        type=parse_size,
+        default=DEFAULT_SIZE,
+        help=f"输出分辨率 宽x高（也可用 *）；默认竖屏 {DEFAULT_SIZE_WIDTH}x{DEFAULT_SIZE_HEIGHT}",
+    )
     p.add_argument("--output-dir", type=Path, default=Path("output"))
     p.add_argument("--endpoint")  # 或环境变量 DASHSCOPE_HTTP_BASE_URL
     a = p.parse_args()
@@ -79,8 +104,8 @@ def main():
     neg = (a.negative_prompt.strip() or None) if a.negative_prompt is not None else (read(a.negative_prompt_file) if a.negative_prompt_file else None)
 
     content = [{"image": img_in(x)} for x in images] + [{"text": prompt}]
-    # 不传 size（传 auto 会 InvalidParameter）；n/watermark 固定
-    params = {"n": 1, "watermark": False, "prompt_extend": True}
+    # n/watermark 固定；size 勿传 auto（InvalidParameter）
+    params = {"n": 1, "watermark": False, "prompt_extend": True, "size": a.size}
     if neg:
         params["negative_prompt"] = neg
 

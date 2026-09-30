@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-custom-env",
   "description": "Sets Host process.env defaults for shell children",
-  "version": "0.1.6-alpha.2",
+  "version": "0.2.0-rc.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
