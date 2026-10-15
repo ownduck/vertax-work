@@ -6,9 +6,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseEnv } from 'node:util'
-import { spawnSync } from 'node:child_process'
 import type { Context } from '@deepseek-ai/cordis'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
+import { persistWindowsUserEnv } from './windows-user-env.ts'
 
 /** Cordis plugin id. */
 export const name = 'custom-env'
@@ -21,15 +21,6 @@ export const inject: string[] = []
  * (file wins on conflict). Keep secrets out of this map.
  */
 const DEFAULT_ENV: Readonly<Record<string, string>> = {}
-
-/**
- * Escape a string for a PowerShell single-quoted literal.
- * @param value - Raw string.
- * @returns Value safe inside `'...'`.
- */
-function psSingleQuoted(value: string): string {
-  return `'${value.replaceAll("'", "''")}'`
-}
 
 /**
  * Read non-empty string entries from `$DSH_HOME/.env`, or `{}` when absent.
@@ -54,24 +45,6 @@ function loadDshHomeEnvFile(): Readonly<Record<string, string>> {
 }
 
 /**
- * Persist entries into the Windows user environment (HKCU). No-op on other platforms.
- * @param entries - Variable map to write.
- */
-function persistWindowsUserEnv(entries: Readonly<Record<string, string>>): void {
-  if (process.platform !== 'win32') return
-  const statements = Object.entries(entries).map(
-    ([key, value]) =>
-      `[Environment]::SetEnvironmentVariable(${psSingleQuoted(key)}, ${psSingleQuoted(value)}, 'User')`,
-  )
-  if (statements.length === 0) return
-  spawnSync(
-    'powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-Command', statements.join('; ')],
-    { windowsHide: true, stdio: 'ignore' },
-  )
-}
-
-/**
  * Assign defaults plus `$DSH_HOME/.env` onto the Host (and Windows user env).
  * @param _ctx - unused; registration is the side effect of loading the plugin.
  */
@@ -80,5 +53,10 @@ export function apply(_ctx: Context): void {
   for (const [key, value] of Object.entries(merged)) {
     process.env[key] = value
   }
-  persistWindowsUserEnv(merged)
+  try {
+    persistWindowsUserEnv(merged)
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    process.stderr.write(`custom-env: failed to persist Windows user environment: ${detail}\n`)
+  }
 }
