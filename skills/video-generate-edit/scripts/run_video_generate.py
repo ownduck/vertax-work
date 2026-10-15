@@ -30,19 +30,9 @@ def read_json(r):
         raise RuntimeError(f"响应非 JSON: HTTP {r.status_code} {r.text}") from e
 
 
-def resolve_base(cli):
-    if cli:
-        return cli.rstrip("/")
-    if ep := (os.getenv("DASHSCOPE_HTTP_BASE_URL") or "").strip():
-        return ep.rstrip("/")
-    if ws := (os.getenv("VERTAX_BAILIAN_WORKSPACE_ID") or os.getenv("BAILIAN_WORKSPACE_ID") or "").strip():
-        return f"https://{ws}.cn-beijing.maas.aliyuncs.com/api/v1"
-    return DEFAULT_BASE
-
-
-def upload_local(key, model, path, upload_base):
+def upload_local(key, model, path):
     r = requests.get(
-        f"{upload_base}/uploads",
+        f"{DEFAULT_BASE}/uploads",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
         params={"action": "getPolicy", "model": model},
         timeout=HTTP_TIMEOUT,
@@ -69,13 +59,13 @@ def upload_local(key, model, path, upload_base):
     return f"oss://{oss_key}"
 
 
-def to_url(key, model, src, upload_base):
+def to_url(key, model, src):
     if is_url(src):
         return src, False
     path = Path(src)
     if not path.is_file():
         raise FileNotFoundError(f"文件不存在: {path}")
-    return upload_local(key, model, path, upload_base), True
+    return upload_local(key, model, path), True
 
 
 def main():
@@ -94,7 +84,6 @@ def main():
     p.add_argument("--ratio", choices=("adaptive", "16:9", "9:16", "1:1", "4:3", "3:4", "21:9"), default=DEFAULT_RATIO)
     p.add_argument("--duration", type=int, default=DEFAULT_DURATION, help="时长秒数；最小4，最大15，默认10")
     p.add_argument("--output-dir", type=Path, default=Path("output"))
-    p.add_argument("--endpoint")
     a = p.parse_args()
 
     key = (os.getenv("VERTAX_DASHSCOPE_API_KEY") or os.getenv("DASHSCOPE_API_KEY") or "").strip()
@@ -135,13 +124,11 @@ def main():
     if len(names) != len(set(names)):
         p.error("参考素材文件名不能重复")
 
-    base = resolve_base(a.endpoint)
-    upload_base = (os.getenv("DASHSCOPE_UPLOAD_BASE_URL") or DEFAULT_BASE).rstrip("/")
     media, used_oss = [], False
 
     def add(typ, src):
         nonlocal used_oss
-        url, oss = to_url(key, a.model, src, upload_base)
+        url, oss = to_url(key, a.model, src)
         used_oss = used_oss or oss
         media.append({"type": typ, "url": url})
 
@@ -166,7 +153,12 @@ def main():
         "input": {"prompt": prompt, **({"media": media} if media else {})},
         "parameters": {"resolution": a.size, "ratio": a.ratio, "duration": a.duration, "watermark": False},
     }
-    r = requests.post(f"{base}/services/aigc/video-generation/video-synthesis", headers=headers, json=body, timeout=HTTP_TIMEOUT)
+    r = requests.post(
+        f"{DEFAULT_BASE}/services/aigc/video-generation/video-synthesis",
+        headers=headers,
+        json=body,
+        timeout=HTTP_TIMEOUT,
+    )
     data = read_json(r)
     if not r.ok or data.get("code"):
         raise api_err("提交失败", r, data)
@@ -179,7 +171,11 @@ def main():
 
     deadline, video_url = time.monotonic() + POLL_TIMEOUT, None
     while time.monotonic() < deadline:
-        q = requests.get(f"{base}/tasks/{task_id}", headers={"Authorization": f"Bearer {key}"}, timeout=HTTP_TIMEOUT)
+        q = requests.get(
+            f"{DEFAULT_BASE}/tasks/{task_id}",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=HTTP_TIMEOUT,
+        )
         qd = read_json(q)
         out = qd.get("output") or {}
         status = out.get("task_status")

@@ -2,7 +2,8 @@
 name: social-video-generate
 description: >-
   社媒短视频创建核心向导（总时长 ≤15s，未指定默认 10s）：先用 social-video-script-story 或 social-video-script-product 出剧情，
-  再用 social-video-storyboard 出分镜，按 MiniMax H3 指南做英文文案改写后，调用 video-generate-edit 出片。
+  再用 social-video-storyboard 出分镜，按 MiniMax H3 指南做英文文案改写后出片。
+  出片后端由 VERTAX_VIDEO_GENERATER 选择：comfyui → video-generate-edit-comfyui；default（或未设）→ video-generate-edit。
   未说明的参数一律用默认；主题/商品可自行随机；尽量不 HITL。全链路默认英文（含口播）与美国人设。
   目标时长 >15s 时改用 social-long-video-generate。
   在用户要做社媒短视频、TikTok/Reels/Shorts、带货/故事向竖屏成片向导时使用。
@@ -10,7 +11,7 @@ description: >-
 
 # Social Video Generate
 
-编排向导。自身不直接调百炼；按序调用下游 skill。
+编排向导。自身不直接调百炼/ComfyUI；按序调用下游 skill。
 
 **时长**：本技能仅 **≤15s**。用户未指定时长时 **默认 10 秒**。目标总时长 **>15s**（至 60s）改用 **social-long-video-generate**。
 
@@ -28,7 +29,30 @@ description: >-
 | 人物 | 美国人 |
 | 画幅 | `--ratio 9:16` |
 
-**仅在这些情况 HITL/停住**：下游 skill 缺失；用户明确锁定了互相冲突且无法自行裁决的硬约束；目标时长 >15s（改指 long 向导）。其余缺口一律用默认或自拟，不追问。
+**仅在这些情况 HITL/停住**：下游 skill 缺失；用户明确锁定了互相冲突且无法自行裁决的硬约束；目标时长 >15s（改指 long 向导）；`VERTAX_VIDEO_GENERATER` 为非法值。其余缺口一律用默认或自拟，不追问。
+
+## 出片后端选择
+
+读取环境变量 `VERTAX_VIDEO_GENERATER`（忽略大小写与首尾空白）：
+
+| 值 | 出片 skill |
+|---|---|
+| `comfyui` | `video-generate-edit-comfyui` |
+| `default` | `video-generate-edit` |
+| 未设置 / 空 | 按 **`default`** |
+| 其它 | HITL 停住，说明合法值仅为 `comfyui` / `default` |
+
+两套差异（编排必须遵守；细节以所选 skill 为准）：
+
+| 项 | `default`（百炼） | `comfyui` |
+|---|---|---|
+| 脚本 | 单脚本 `run_video_generate.py` → 本地路径 | `comfyui_healthcheck.py` → `run.py`（`prompt_id`）→ `get_result.py`（本地路径） |
+| 鉴权 | `VERTAX_DASHSCOPE_API_KEY` / `DASHSCOPE_API_KEY` | `VERTAX_COMFYUI_TOKEN`（`X-Token`）+ endpoint |
+| `--output-dir` | 在出片脚本上 | **仅** `get_result.py` |
+| `--size` | 有（默认 `768P`） | **无**（勿传） |
+| `--video1` / `--audio1` | 支持 | **不支持**（有此类素材时 HITL：改 `default` 或去掉） |
+| 媒体路径 | 本地或 http(s) | **仅本地路径** |
+| 首尾帧 vs 参考图 | **互斥** | 可混用（Hybrid） |
 
 下游：
 
@@ -36,7 +60,7 @@ description: >-
 |---|---|
 | 剧情 | `social-video-script-story` 或 `social-video-script-product` |
 | 分镜 | `social-video-storyboard` |
-| 出片 | `video-generate-edit` |
+| 出片 | 由 `VERTAX_VIDEO_GENERATER` 选择（见上） |
 
 文案改写参考：[MiniMax H3 Video Prompt Writing Guide](https://huggingface.co/MiniMaxAI/MiniMax-H3/raw/main/docs/VIDEO_PROMPT_WRITING_GUIDE_base_en.md)（**仅文案结构与写法**；忽略接口/模型技术细节）。本地摘要见 [references/h3-prompt-copywriting.md](references/h3-prompt-copywriting.md)。
 
@@ -87,17 +111,28 @@ description: >-
 - 仅当用户**明确锁定**非英文台词（或明确要求保留某语种口播）时，才用对应语言标签并原样保留，不擅自改词。
 - 画内招牌等需显示的原文可放在英文双引号内保留字符——**这不等于口播可以非英文**。
 
-### 5. 调用 video-generate-edit 出片
+### 5. 按所选后端出片
 
-1. 完整阅读并遵循 **video-generate-edit**（参数、互斥、Key、落盘等以其为准）。
-2. 将第 4 步定稿的英文最终分镜作为 `--prompt-file`（推荐）传入；按用户素材传 `--image*` / `--first-image` / `--last-image` / `--video1` / `--audio1` 等（无素材则纯文生，勿追问）。
-3. 提交前再扫一眼：所有 `<d>` 块在默认情况下均为 `[English]`；勿再在 `video-generate-edit` 侧做文案改写。
-4. 交付：视频本地绝对路径；可附最终 prompt 文件路径。交付物中的说话声默认应为英文口播。
+先按上文选定出片 skill；提交前再扫一眼：所有 `<d>` 块在默认情况下均为 `[English]`；出片 skill **不做** H3 文案改写。
+
+#### 5a. `default` → video-generate-edit
+
+1. 完整阅读并遵循 **video-generate-edit**。
+2. 调用 `scripts/run_video_generate.py`：第 4 步定稿作 `--prompt-file`；`--duration` 取 T；`--ratio 9:16`；按用户素材传 `--image*` / `--first-image` / `--last-image` / `--video1` / `--audio1`（无素材则纯文生）；`--output-dir` 建议绝对路径。遵守百炼**首尾帧与参考图/音视频互斥**。
+3. 交付：stdout 本地视频绝对路径；可附最终 prompt 路径。
+
+#### 5b. `comfyui` → video-generate-edit-comfyui
+
+1. 完整阅读并遵循 **video-generate-edit-comfyui**。
+2. 先跑 `scripts/comfyui_healthcheck.py`（退出码 0 才继续）。
+3. 调用 `scripts/run.py`：`--prompt-file`、`--duration` T、`--ratio 9:16`；可选 `--first-image` / `--last-image` / `--image1`～`--image3`（**仅本地路径**）。**勿传** `--size`、`--video1`、`--audio1`；`--output-dir` 不在本脚本。保存 stdout 的 `prompt_id`。
+4. 调用 `scripts/get_result.py --prompt-id … --output-dir …`（建议绝对路径）。
+5. 交付：get_result 的 stdout 本地视频绝对路径；可附最终 prompt 路径。
 
 ## 注意
 
-- 无剧情、无分镜、无英文定稿（含英文口播）前，不调用 `video-generate-edit`。
+- 无剧情、无分镜、无英文定稿（含英文口播）前，不调用所选出片 skill。
 - 下游 skill 缺失时：停住告知用户，勿自行发明整套剧本/分镜规范替代。
-- 竖屏社媒默认：`video-generate-edit` 的 `--ratio 9:16`；时长未指定用 **10s**，用户指定则取其值（须在 4～15s）。
+- 竖屏社媒默认：`--ratio 9:16`；时长未指定用 **10s**，用户指定则取其值（须在 4～15s）。
 - 目标时长 >15s：停用本技能流程，改读并遵循 **social-long-video-generate**。
 - 下游 `social-video-script-*` / `social-video-storyboard` 亦默认英文、人物默认美国人；向导与下游约定一致，避免上游交中文/非默认人物、末端再补救。

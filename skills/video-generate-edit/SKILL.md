@@ -1,9 +1,12 @@
 ---
 name: video-generate-edit
 description: >-
-  通过 scripts/run_video_generate.py 调用阿里云百炼 MiniMax-H3 做文生视频、首尾帧图生视频或多模态参考生视频。
+  百炼单脚本出片：通过 scripts/run_video_generate.py 调用阿里云百炼 MiniMax-H3
+  做文生视频、首尾帧图生视频或多模态参考生视频（一次提交轮询出本地路径）。
+  VERTAX_VIDEO_GENERATER=default（或未设）时由 social-video-generate / social-long-video-generate 选用；
+  与 video-generate-edit-comfyui（ComfyUI 双脚本）勿混用。
   在用户要求生视频、改视频、首尾帧、参考图/视频/音频生视频、MiniMax H3、Bailian 出片时使用。
-  接收已就绪的提示词并提交；文案改写由上游（如 social-video-generate）完成。
+  接收已就绪的提示词并提交；文案改写由上游完成。
 ---
 
 # Video Generate Edit
@@ -12,13 +15,14 @@ description: >-
 
 本 skill **不做** MiniMax H3 指南文案改写；`--prompt` / `--prompt-file` 视为已定稿（社媒向导场景下应由 `social-video-generate` 产出英文最终分镜）。
 
+固定 API 根地址：`https://dashscope.aliyuncs.com/api/v1`（提交、轮询、本地素材上传均用此地址；不接受 endpoint / 工作空间 ID / 自定义 Base URL）。
+
 ## 流程
 
 1. 缺依赖时安装：`python -m pip install -r "<技能目录>/scripts/requirements.txt"`
 2. 确认 Key：`VERTAX_DASHSCOPE_API_KEY`（优先）或 `DASHSCOPE_API_KEY`
-3. 确认服务地址：`--endpoint` → `DASHSCOPE_HTTP_BASE_URL` → `VERTAX_BAILIAN_WORKSPACE_ID`/`BAILIAN_WORKSPACE_ID`（拼北京 MaaS）→ 默认 `https://dashscope.aliyuncs.com/api/v1`
-4. 按用户意图组素材参数（见下），传入已定稿提示词，执行 `run_video_generate.py`
-5. 读取 stdout 的本地视频绝对路径交付；stderr 可能有 `task_id` / `request_id`
+3. 按用户意图组素材参数（见下），传入已定稿提示词，执行 `run_video_generate.py`
+4. 读取 stdout 的本地视频绝对路径交付；stderr 可能有 `task_id` / `request_id`
 
 ## 模式选择（以百炼入参为准）
 
@@ -46,8 +50,6 @@ description: >-
 - `--output-dir`：默认 `./output`；建议绝对路径。
 - 脚本固定：`watermark=false`。提示词不超过 7000 字符。
 
-`--endpoint` 或 `DASHSCOPE_HTTP_BASE_URL` 默认 `https://dashscope.aliyuncs.com/api/v1`；上传可用 `DASHSCOPE_UPLOAD_BASE_URL` 覆盖。Key 与地域须一致。
-
 ## 命令示例
 
 ```sh
@@ -65,7 +67,7 @@ python "<技能目录>/scripts/run_video_generate.py" --image1 "a.png" --image2 
 ## 交付与失败
 
 - **成功**：把 stdout 本地视频路径交给用户（远端 `video_url` 约 30 天，勿当长期存储）。
-- **失败**：返回完整报错（含 `task_id` / `request_id`）；检查 Key、endpoint、素材、互斥与 duration。
+- **失败**：返回完整报错（含 `task_id` / `request_id`）；检查 Key、素材、互斥与 duration。
 - 不要为等待而重跑同一任务。
 
 API 说明见：[MiniMax 视频生成](https://docs.bailian.console.aliyun.com/zh/model-studio/minimax-video-generation-api-reference)
