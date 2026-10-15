@@ -14,7 +14,7 @@ def main():
     headers = {"X-Token": token} if token else {}
 
     try:
-        response = requests.get(f"{endpoint}/system_stats", headers=headers, timeout=10)
+        response = requests.get(f"{endpoint}/system_stats", headers=headers, timeout=120)
         response.raise_for_status()
         stats = response.json()
         if not isinstance(stats, dict) or not isinstance(stats.get("system"), dict):

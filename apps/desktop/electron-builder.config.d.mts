@@ -25,7 +25,6 @@ export interface DesktopElectronBuilderConfig {
   ]
   /** Windows only: files placed beside the packaged `.exe`. */
   readonly extraFiles?: readonly [
-    { readonly from: string, readonly to: 'init-env.bat' },
     { readonly from: string, readonly to: '.env' },
   ]
   readonly mac: {

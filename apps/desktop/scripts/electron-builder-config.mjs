@@ -148,10 +148,9 @@ export function createElectronBuilderConfig(
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
       { from: fileURLToPath(new URL('../../../skills', import.meta.url)), to: 'skills' },
     ],
-    // Windows install root (beside the .exe): init helper + dotenv for custom-env / DSH_HOME.
+    // Windows install root (beside the .exe): dotenv for custom-env / DSH_HOME.
     ...packagesWindows ? {
       extraFiles: [
-        { from: fileURLToPath(new URL('../../../init-env.bat', import.meta.url)), to: 'init-env.bat' },
         {
           from: (() => {
             const rootEnv = fileURLToPath(new URL('../../../.env', import.meta.url))

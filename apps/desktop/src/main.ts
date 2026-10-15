@@ -3,8 +3,10 @@ import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
 /** Electron shell: desktop project ownership, custom protocol, windows, and lifecycle. */
 
 import { readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import {
   app,
   BrowserWindow,
@@ -318,12 +320,27 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
   return window
 }
 
+/** First-run only: seed $DSH_HOME/.env from repo root (dev) or install dir (packaged). */
+function seedDshHomeEnv(): void {
+  const home = resolveDshHome()
+  const dest = join(home, '.env')
+  if (existsSync(dest) && readFileSync(dest, 'utf8').trim() !== '') return
+  const src = app.isPackaged
+    ? join(dirname(process.execPath), '.env')
+    : join(app.getAppPath(), '..', '..', '.env') // apps/desktop → 仓库根
+  if (!existsSync(src)) return
+  mkdirSync(home, { recursive: true })
+  copyFileSync(src, dest)
+}
+
 async function main(): Promise<void> {
   const desktopSettings = readDesktopSettings(app.getPath('userData'))
   void pruneCrashReports(app.getPath('logs'))
   if (!process.env.DSH_BUNDLED_SKILL_DIR && app.isPackaged) {
     process.env.DSH_BUNDLED_SKILL_DIR = join(process.resourcesPath, 'skills')
-  }  const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
+  }
+  const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
+  seedDshHomeEnv()
   const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
   const resources = runtimeResources()
   const paths = resolveDesktopPaths()

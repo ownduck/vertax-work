@@ -49,12 +49,12 @@ describe('installer preparation preserves application dependencies', () => {
       }
       if (platform === 'win32') {
         expect(config.extraFiles).toEqual(expect.arrayContaining([
-          expect.objectContaining({ to: 'init-env.bat' }),
           expect.objectContaining({ to: '.env' }),
         ]))
       } else {
         expect(config.extraFiles).toBeUndefined()
-      }      const packager = new Packager({ projectDir: tmpdir() })
+      }
+      const packager = new Packager({ projectDir: tmpdir() })
       // A foreign source-build target avoids rebuilding modules; the real dependency ownership decision still runs.
       Object.defineProperties(packager, {
         config: { value: { beforeBuild: config.beforeBuild, buildDependenciesFromSource: true } },
