@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 sh build-clean.sh
 export DSH_BUILD_CLIENT_PROFILE=official
 export ELECTRON_MIRROR='https://npmmirror.com/mirrors/electron/'
+export DSH_DESKTOP_NPM_REGISTRY='https://registry.npmmirror.com'
 pnpm run package:desktop:win:x64:unsigned
 
 OUT=apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts

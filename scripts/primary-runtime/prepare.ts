@@ -90,7 +90,7 @@ export async function downloadRuntimeNpmPackage(artifact: RuntimeNpmArchive, des
 export async function downloadNodeRuntime(target: PrimaryRuntimeTarget, destination: string, cache: string): Promise<void> {
   const artifact = lock.targets[target]
   const filename = `node-v${lock.nodeVersion}-${artifact.nodeArchive}`
-  const archive = await downloadPrimaryRuntimeAsset(`https://nodejs.org/dist/v${lock.nodeVersion}/${filename}`, artifact.nodeSha256, cache)
+  const archive = await downloadPrimaryRuntimeAsset(`https://npmmirror.com/mirrors/node/v${lock.nodeVersion}/${filename}`, artifact.nodeSha256, cache)
   const staging = mkdtempSync(join(tmpdir(), 'dsh-node-'))
   try {
     if (target === 'win-x64') await extractZip(archive, { dir: staging })
@@ -108,7 +108,7 @@ export async function downloadNodeRuntime(target: PrimaryRuntimeTarget, destinat
 async function pythonArchive(target: keyof typeof lock.targets, cache: string): Promise<string> {
   const artifact = lock.targets[target]
   const filename = `cpython-${lock.pythonVersion}+${lock.pythonRelease}-${artifact.pythonTarget}-install_only_stripped.tar.gz`
-  return downloadPrimaryRuntimeAsset(`https://github.com/astral-sh/python-build-standalone/releases/download/${lock.pythonRelease}/${encodeURIComponent(filename)}`, artifact.pythonSha256, cache)
+  return downloadPrimaryRuntimeAsset(`https://registry.npmmirror.com/-/binary/python-build-standalone/${lock.pythonRelease}/${filename}`, artifact.pythonSha256, cache)
 }
 
 /**
