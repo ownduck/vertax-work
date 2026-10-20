@@ -4,7 +4,7 @@ description: >-
   社媒长视频向导（总时长 16～60s，未指定时默认 30s）：按分镜在明确切镜/换场处切成多段 ≤15s，
   每段用 image-generate-edit 生成独立首帧（统一 1024x1680，不做尾帧），
   再按 VERTAX_VIDEO_GENERATER 选择出片后端后 ffmpeg 硬切拼接
-  （comfyui → video-generate-edit-comfyui；default/未设 → video-generate-edit）。
+  （comfyui → video-generate-edit-comfyui；tencent → video-generate-edit-tencent；default/未设 → video-generate-edit）。
   未说明的参数一律用默认；主题/商品可自行随机；尽量不 HITL。
   默认英文（含口播）与美国人设；>15s 用本技能，≤15s 用 social-video-generate。
 ---
@@ -25,7 +25,7 @@ description: >-
 | 时长 T | **30s**（用户指定则取 16～60） |
 | 语言 | 英文（含口播 `<d>[English]`） |
 | 人物 | 美国人 |
-| 画幅 | 首帧 `1024x1680`；出片 `--ratio 9:16`；`--size 768P` **仅 default（百炼）** |
+| 画幅 | 首帧 `1024x1680`；出片 `--ratio 9:16`；`--size 768P` **仅 default（百炼）/ tencent** |
 
 **仅在这些情况 HITL/停住**：下游 skill / ffmpeg 缺失；用户明确锁定了互相冲突且无法自行裁决的硬约束；目标时长 **>60**（请缩短或拆条）；≤15 改指 **social-video-generate**；`VERTAX_VIDEO_GENERATER` 为非法值。其余缺口一律用默认或自拟，不追问。
 
@@ -36,11 +36,12 @@ description: >-
 | 值 | 出片 skill |
 |---|---|
 | `comfyui` | `video-generate-edit-comfyui` |
+| `tencent` | `video-generate-edit-tencent` |
 | `default` | `video-generate-edit` |
 | 未设置 / 空 | 按 **`default`** |
-| 其它 | HITL 停住，说明合法值仅为 `comfyui` / `default` |
+| 其它 | HITL 停住，说明合法值仅为 `comfyui` / `tencent` / `default` |
 
-差异摘要：`default` 为单脚本出本地路径且可传 `--size`；`comfyui` 为 healthcheck → `run.py`（`prompt_id`）→ `get_result.py`（`--output-dir` 仅在此），无 `--size`，媒体仅本地路径。细节以所选 skill 为准。
+差异摘要：`default` / `tencent` 均为单脚本出本地路径且可传 `--size`；`comfyui` 为 healthcheck → `run.py`（`prompt_id`）→ `get_result.py`（`--output-dir` 仅在此），无 `--size`，媒体仅本地路径。细节以所选 skill 为准。
 
 下游：
 
@@ -59,7 +60,7 @@ description: >-
 | 侧 | 锁定 |
 |---|---|
 | 出图 | 全片所有首帧 `--size 1024x1680`（段段相同） |
-| 出片 | 全片 `--ratio 9:16`；**default** 另传 `--size 768P`（可全片统一改 `2K`，不得段间混用）；**comfyui** 不传 `--size` |
+| 出片 | 全片 `--ratio 9:16`；**default** / **tencent** 另传 `--size 768P`（可全片统一改 `2K`，不得段间混用）；**comfyui** 不传 `--size` |
 | 首尾帧 | **只传首帧**；禁止为本向导生成或传入尾帧；禁止抽上一段视频末帧当下一段首帧 |
 
 用户参考图尺寸不一：用 `image-generate-edit` 以 `1024x1680` 重绘后再作首帧。无参考图则纯文生首帧，勿追问。
@@ -133,7 +134,11 @@ description: >-
 --output-dir <段输出目录>
 ```
 
-#### 6b. `comfyui` → video-generate-edit-comfyui
+#### 6b. `tencent` → video-generate-edit-tencent
+
+对每一段调用 `scripts/run_video_generate.py`（参数同 6a：`--first-image` / `--prompt-file` / `--duration` / `--ratio 9:16` / `--size 768P` / `--output-dir`）。
+
+#### 6c. `comfyui` → video-generate-edit-comfyui
 
 1. 全片出片开始前跑一次 `scripts/comfyui_healthcheck.py`（退出码 0 才继续）。
 2. 对每一段：

@@ -3,7 +3,7 @@ name: social-video-generate
 description: >-
   社媒短视频创建核心向导（总时长 ≤15s，未指定默认 10s）：先用 social-video-script-story 或 social-video-script-product 出剧情，
   再用 social-video-storyboard 出分镜，按 MiniMax H3 指南做英文文案改写后出片。
-  出片后端由 VERTAX_VIDEO_GENERATER 选择：comfyui → video-generate-edit-comfyui；default（或未设）→ video-generate-edit。
+  出片后端由 VERTAX_VIDEO_GENERATER 选择：comfyui → video-generate-edit-comfyui；tencent → video-generate-edit-tencent；default（或未设）→ video-generate-edit。
   未说明的参数一律用默认；主题/商品可自行随机；尽量不 HITL。全链路默认英文（含口播）与美国人设。
   目标时长 >15s 时改用 social-long-video-generate。
   在用户要做社媒短视频、TikTok/Reels/Shorts、带货/故事向竖屏成片向导时使用。
@@ -38,21 +38,22 @@ description: >-
 | 值 | 出片 skill |
 |---|---|
 | `comfyui` | `video-generate-edit-comfyui` |
+| `tencent` | `video-generate-edit-tencent` |
 | `default` | `video-generate-edit` |
 | 未设置 / 空 | 按 **`default`** |
-| 其它 | HITL 停住，说明合法值仅为 `comfyui` / `default` |
+| 其它 | HITL 停住，说明合法值仅为 `comfyui` / `tencent` / `default` |
 
-两套差异（编排必须遵守；细节以所选 skill 为准）：
+三套差异（编排必须遵守；细节以所选 skill 为准）：
 
-| 项 | `default`（百炼） | `comfyui` |
-|---|---|---|
-| 脚本 | 单脚本 `run_video_generate.py` → 本地路径 | `comfyui_healthcheck.py` → `run.py`（`prompt_id`）→ `get_result.py`（本地路径） |
-| 鉴权 | `VERTAX_DASHSCOPE_API_KEY` / `DASHSCOPE_API_KEY` | `VERTAX_COMFYUI_TOKEN`（`X-Token`）+ endpoint |
-| `--output-dir` | 在出片脚本上 | **仅** `get_result.py` |
-| `--size` | 有（默认 `768P`） | **无**（勿传） |
-| `--video1` / `--audio1` | 支持 | **不支持**（有此类素材时 HITL：改 `default` 或去掉） |
-| 媒体路径 | 本地或 http(s) | **仅本地路径** |
-| 首尾帧 vs 参考图 | **互斥** | 可混用（Hybrid） |
+| 项 | `default`（百炼） | `tencent`（VOD Vega） | `comfyui` |
+|---|---|---|---|
+| 脚本 | 单脚本 `run_video_generate.py` → 本地路径 | 单脚本 `run_video_generate.py` → 本地路径 | `comfyui_healthcheck.py` → `run.py`（`prompt_id`）→ `get_result.py`（本地路径） |
+| 鉴权 | `VERTAX_DASHSCOPE_API_KEY` / `DASHSCOPE_API_KEY` | `VERTAX_TENCENTCLOUD_SECRET_ID/KEY` 或 `TENCENTCLOUD_SECRET_ID/KEY` + `TENCENTCLOUD_VOD_SUB_APP_ID` | `VERTAX_COMFYUI_TOKEN`（`X-Token`）+ endpoint |
+| `--output-dir` | 在出片脚本上 | 在出片脚本上 | **仅** `get_result.py` |
+| `--size` | 有（默认 `768P`） | 有（默认 `768P`；另支持 `480P`/`1080P`/`4K`） | **无**（勿传） |
+| `--video1` / `--audio1` | 支持 | 支持 | **不支持**（有此类素材时 HITL：改 `default`/`tencent` 或去掉） |
+| 媒体路径 | 本地或 http(s) | 本地或 http(s) | **仅本地路径** |
+| 首尾帧 vs 参考图 | **互斥** | **互斥** | 可混用（Hybrid） |
 
 下游：
 
@@ -121,7 +122,13 @@ description: >-
 2. 调用 `scripts/run_video_generate.py`：第 4 步定稿作 `--prompt-file`；`--duration` 取 T；`--ratio 9:16`；按用户素材传 `--image*` / `--first-image` / `--last-image` / `--video1` / `--audio1`（无素材则纯文生）；`--output-dir` 建议绝对路径。遵守百炼**首尾帧与参考图/音视频互斥**。
 3. 交付：stdout 本地视频绝对路径；可附最终 prompt 路径。
 
-#### 5b. `comfyui` → video-generate-edit-comfyui
+#### 5b. `tencent` → video-generate-edit-tencent
+
+1. 完整阅读并遵循 **video-generate-edit-tencent**。
+2. 调用 `scripts/run_video_generate.py`：第 4 步定稿作 `--prompt-file`；`--duration` 取 T；`--ratio 9:16`；按用户素材传 `--image*` / `--first-image` / `--last-image` / `--video1` / `--audio1`（无素材则纯文生）；`--output-dir` 建议绝对路径。遵守腾讯云**首尾帧与参考图/音视频互斥**；不可单独尾帧。
+3. 交付：stdout 本地视频绝对路径；可附最终 prompt 路径。
+
+#### 5c. `comfyui` → video-generate-edit-comfyui
 
 1. 完整阅读并遵循 **video-generate-edit-comfyui**。
 2. 先跑 `scripts/comfyui_healthcheck.py`（退出码 0 才继续）。
