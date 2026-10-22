@@ -1,0 +1,8 @@
+{
+  "name": "windows-mcp-skill",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "yaml": "^2.9.0"
+  }
+}

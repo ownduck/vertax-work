@@ -61,6 +61,7 @@ def main():
     p.add_argument("--first-image", type=Path, dest="first_image", help="首帧 → 节点32")
     p.add_argument("--last-image", type=Path, dest="last_image", help="尾帧 → 节点33")
     p.add_argument("--comfyui-endpoint", help="ComfyUI 地址；其次读取 VERTAX_COMFYUI_ENDPOINT")
+    p.add_argument("--seed", type=int, default=20827583377142, help="噪波种子；默认 20827583377142 → 节点13 noise_seed，改动即出不同版本")
     a = p.parse_args()
     endpoint = (a.comfyui_endpoint or os.getenv("VERTAX_COMFYUI_ENDPOINT") or "http://127.0.0.1:8188").rstrip("/")
 
@@ -105,6 +106,7 @@ def main():
     task_type = resolve_task_type(has_first, has_last, has_ref)
 
     workflow["18"]["inputs"]["value"] = a.duration
+    workflow["13"]["inputs"]["noise_seed"] = a.seed
     workflow["22"]["inputs"]["aspect_ratio"] = RATIO_MAP[a.ratio]
     workflow["29"]["inputs"]["prompt"] = prompt
     workflow["16"]["inputs"]["save_output"] = True
