@@ -40,7 +40,7 @@ function fixture(profile: 'local' | 'official' = 'local'): string {
   return root
 }
 
-async function pack(root: string, release = false, extra: string[] = []) {
+async function pack(root: string, release = false, extra: string[] = [], env: Record<string, string> = {}) {
   const script = release
     ? resolve(import.meta.dirname, '../../../scripts/release/pack.ts')
     : resolve(import.meta.dirname, '../scripts/pack-local-packages.ts')
@@ -52,7 +52,7 @@ async function pack(root: string, release = false, extra: string[] = []) {
       command: process.execPath,
       args: [pnpmEntry, '--dir', root, 'exec', process.execPath, '--import', tsxHook, script,
         ...(release ? ['--family', 'dsh'] : []), '--out', 'packed', '--concurrency', '2', ...extra],
-      env: { npm_execpath: pnpmEntry, DSH_CLIENT_COMMIT_HASH: metadata.DSH_CLIENT_COMMIT_HASH },
+      env: { npm_execpath: pnpmEntry, DSH_CLIENT_COMMIT_HASH: metadata.DSH_CLIENT_COMMIT_HASH, ...env },
     }, controller.signal)
     activeRuns.set(controller, pending)
     const result = await pending
